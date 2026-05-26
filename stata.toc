@@ -1,0 +1,9 @@
+v 1.0.0
+d Jack Fitzgerald
+d Vrije Universiteit Amsterdam
+d jackfitzgeraldresearch@gmail.com
+d https://github.com/jack-fitzgerald/tsti
+
+d 'lzqreg': Stata command to conduct quantile regression for analyzing logarithmic relationships with non-positive values in the outcome variable
+
+p lzqreg
