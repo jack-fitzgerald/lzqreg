@@ -85,8 +85,6 @@ program lzqreg, eclass byable(onecall) prop(sw mi)
     // Citation disclaimer
     di ""
     di as txt "Please cite the papers underlying this command:"
-    di as txt `"  Fitzgerald, J., Adema, J., Fiala, L., Kujansuu, E., & Valenta, D. (2026). "Non-Robustness in Log-Like Specifications." MetaArXiv."'
-    di as txt "        https://doi.org/10.31222/osf.io/juda7_v1"
-    di as txt `"  Liu, X., & Kaplan, D. M. (2025). "Quantile Regression with Log(0) Outcomes.""'
-    di as txt "        https://drive.google.com/file/d/1F3dnhm8MrlO5aRrGt48rBWAEaBqdCBH-/view"
+    di as txt `"  Fitzgerald, J., Adema, J., Fiala, L., Kujansuu, E., & Valenta, D. (2026). "Non-Robustness in Log-Like Specifications." MetaArXiv. https://doi.org/10.31222/osf.io/juda7_v1"'
+    di as txt `"  Liu, X., & Kaplan, D. M. (2025). "Quantile Regression with Log(0) Outcomes." https://drive.google.com/file/d/1F3dnhm8MrlO5aRrGt48rBWAEaBqdCBH-/view"'
 end
