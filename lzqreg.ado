@@ -71,7 +71,7 @@ program lzqreg, eclass byable(onecall) prop(sw mi)
 
     // Fix up e() before displaying
     ereturn local cmd     "lzqreg"
-    ereturn local depvar  "CEM(`dep')"
+    ereturn local depvar  "ln(`dep')"
     ereturn local cmdline `"lzqreg `0'"'
 
     // Display header and coefficient table manually
