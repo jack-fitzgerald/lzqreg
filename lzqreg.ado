@@ -17,29 +17,57 @@ program lzqreg, eclass byable(onecall) prop(sw mi)
 
     if "`weight'" != "" local wtexp [`weight'`exp']
 
-    // Step 1: run qreg quietly on the raw outcome
-    quietly `BY' qreg `varlist' if `touse' `wtexp', `options'
+    // The most negative value storable in a Stata double
+    local floor = -1e35
 
-    // Step 2: check predicted values from raw qreg
-    tempvar yhat
-    qui predict double `yhat' if `touse', xb
-    qui count if `yhat' <= 0 & `touse'
-    if r(N) > 0 {
-        local nbad = r(N)
-        ereturn clear
-        di as err "{p}`nbad' fitted value" plural(`nbad', "", "s") ///
-            " at or below zero on the original scale; " ///
-            "results suppressed{p_end}"
-        exit 459
-    }
+    // Smallest positive value of the outcome in the estimation sample
+    tempvar dep_pos
+    qui gen double `dep_pos' = `dep' if `dep' > 0 & `touse'
+    qui summarize `dep_pos', meanonly
+    local ln_min_pos = ln(r(min))
 
-    // Step 3: run qreg quietly on the log-zero-transformed outcome
+    // Step 1: initial sentinel = midpoint between floor and ln(min positive y)
+    local sentinel = (`floor' + `ln_min_pos') / 2
+
+    // Build transformed outcome using initial sentinel
     tempvar dep_trans
     qui gen double `dep_trans' = ///
-        cond(`dep' > 0, ln(`dep'), -1.70141173319e38) if `touse'
+        cond(`dep' > 0, ln(`dep'), `sentinel') if `touse'
 
-    local newvarlist `dep_trans' `indep'
-    quietly `BY' qreg `newvarlist' if `touse' `wtexp', `options'
+    // Steps 2-3: iterate up to 10 times
+    local success = 0
+    forvalues iter = 1/10 {
+
+        // Update transformed outcome with current sentinel
+        qui replace `dep_trans' = ///
+            cond(`dep' > 0, ln(`dep'), `sentinel') if `touse'
+
+        // Run qreg on transformed outcome
+        local newvarlist `dep_trans' `indep'
+        quietly `BY' qreg `newvarlist' if `touse' `wtexp', `options'
+
+        // Check whether all fitted values exceed the sentinel
+        tempvar yhat
+        qui predict double `yhat' if `touse', xb
+        qui count if `yhat' <= `sentinel' & `touse'
+
+        if r(N) == 0 {
+            local success = 1
+            continue, break
+        }
+
+        // Not all fitted values above sentinel: move sentinel halfway to floor
+        local sentinel = (`floor' + `sentinel') / 2
+        drop `yhat'
+    }
+
+    if `success' == 0 {
+        ereturn clear
+        di as err "{p}Convergence failure: after 10 iterations, some fitted values " ///
+            "from quantile regression on the transformed outcome remain at or " ///
+            "below the psi value; results suppressed{p_end}"
+        exit 459
+    }
 
     // Fix up e() before displaying
     ereturn local cmd     "lzqreg"
